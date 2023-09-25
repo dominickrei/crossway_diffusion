@@ -102,12 +102,16 @@ class MultiStepWrapper(gym.Wrapper):
         """
         actions: (n_action_steps,) + action_shape
         """
+        # import time
+        # t2 = 0
         for act in action:
+            # t0 = time.perf_counter()
             if len(self.done) > 0 and self.done[-1]:
                 # termination
                 break
+            
             observation, reward, done, info = super().step(act)
-
+            # t1 = time.perf_counter()
             self.obs.append(observation)
             self.reward.append(reward)
             if (self.max_episode_steps is not None) \
@@ -116,6 +120,8 @@ class MultiStepWrapper(gym.Wrapper):
                 done = True
             self.done.append(done)
             self._add_info(info)
+            # print(f'MP {t1 - t0:.4f} {time.perf_counter() - t1:.4f} {t0 - t2:.4f}')
+            # t2 = time.perf_counter()
 
         observation = self._get_obs(self.n_obs_steps)
         reward = aggregate(self.reward, self.reward_agg_method)

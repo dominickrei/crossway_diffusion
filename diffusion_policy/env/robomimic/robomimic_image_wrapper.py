@@ -106,8 +106,11 @@ class RobomimicImageWrapper(gym.Env):
         return obs
     
     def step(self, action):
+        # import time
+        # t0 = time.perf_counter()
         raw_obs, reward, done, info = self.env.step(action)
         obs = self.get_observation(raw_obs)
+        # print(f'Wrap: {time.perf_counter() - t0:.5f}')
         return obs, reward, done, info
     
     def render(self, mode='rgb_array'):

@@ -307,7 +307,7 @@ class RobomimicLowdimRunner(BaseLowdimRunner):
                 past_action = action
 
                 # update pbar
-                pbar.update(action.shape[1])
+                pbar.update(self.n_action_steps) # !! lx: change it from action[1] to n_action_steps for DD
             pbar.close()
 
             # collect data for this round
@@ -317,15 +317,7 @@ class RobomimicLowdimRunner(BaseLowdimRunner):
         # log
         max_rewards = collections.defaultdict(list)
         log_data = dict()
-        # results reported in the paper are generated using the commented out line below
-        # which will only report and average metrics from first n_envs initial condition and seeds
-        # fortunately this won't invalidate our conclusion since
-        # 1. This bug only affects the variance of metrics, not their mean
-        # 2. All baseline methods are evaluated using the same code
-        # to completely reproduce reported numbers, uncomment this line:
-        # for i in range(len(self.env_fns)):
-        # and comment out this line
-        for i in range(n_inits):
+        for i in range(len(self.env_fns)):
             seed = self.env_seeds[i]
             prefix = self.env_prefixs[i]
             max_reward = np.max(all_rewards[i])

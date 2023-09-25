@@ -142,7 +142,7 @@ class PushTImageRunner(BaseImageRunner):
         self.max_steps = max_steps
         self.tqdm_interval_sec = tqdm_interval_sec
     
-    def run(self, policy: BaseImagePolicy):
+    def run(self, policy: BaseImagePolicy, enable_grad=False):
         device = policy.device
         dtype = policy.dtype
         env = self.env
@@ -195,8 +195,11 @@ class PushTImageRunner(BaseImageRunner):
                         device=device))
 
                 # run policy
-                with torch.no_grad():
+                if enable_grad:
                     action_dict = policy.predict_action(obs_dict)
+                else:
+                    with torch.no_grad():
+                        action_dict = policy.predict_action(obs_dict)
 
                 # device_transfer
                 np_action_dict = dict_apply(action_dict,
@@ -210,25 +213,26 @@ class PushTImageRunner(BaseImageRunner):
                 past_action = action
 
                 # update pbar
-                pbar.update(action.shape[1])
+                pbar.update(self.n_action_steps) # !! lx: change it from action[1] to n_action_steps for DD
             pbar.close()
 
             all_video_paths[this_global_slice] = env.render()[this_local_slice]
             all_rewards[this_global_slice] = env.call('get_attr', 'reward')[this_local_slice]
+    
+            # for debug
+            # info_str = str(info)
+            # reward_str = str(env.call('get_attr', 'reward'))
+            # action_dict_str = str(action_dict)
+            # with open("/home/xiangli/Codes/diffusion_policy/outputs/text.log", "w") as f:
+            #     f.write("info\n"+info_str+"\n")
+            #     f.write("reward\n"+reward_str+"\n")
+            #     f.write("action_dict"+action_dict_str+"\n")
         # clear out video buffer
         _ = env.reset()
 
         # log
         max_rewards = collections.defaultdict(list)
         log_data = dict()
-        # results reported in the paper are generated using the commented out line below
-        # which will only report and average metrics from first n_envs initial condition and seeds
-        # fortunately this won't invalidate our conclusion since
-        # 1. This bug only affects the variance of metrics, not their mean
-        # 2. All baseline methods are evaluated using the same code
-        # to completely reproduce reported numbers, uncomment this line:
-        # for i in range(len(self.env_fns)):
-        # and comment out this line
         for i in range(n_inits):
             seed = self.env_seeds[i]
             prefix = self.env_prefixs[i]

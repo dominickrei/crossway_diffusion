@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 from tqdm import tqdm
 import zarr
+from zarr.codecs import Blosc, Zlib
 import os
 import shutil
 import copy
@@ -44,15 +45,31 @@ class RobomimicReplayImageDataset(BaseImageDataset):
             use_legacy_normalizer=False,
             use_cache=False,
             seed=42,
-            val_ratio=0.0
+            val_ratio=0.0,
+            compressor='blosc'
         ):
         rotation_transformer = RotationTransformer(
             from_rep='axis_angle', to_rep=rotation_rep)
 
+        if compressor == 'zlib':
+            postfix = compressor
+            compressor = Zlib()
+        elif compressor == 'blosc':
+            postfix = compressor
+            compressor = Blosc()
+        elif compressor == 'none':
+            postfix = 'none'
+            compressor = None
+        else:
+            postfix = ''
+            compressor = Jpeg2k()
+        
+        
         replay_buffer = None
         if use_cache:
-            cache_zarr_path = dataset_path + '.zarr.zip'
-            cache_lock_path = cache_zarr_path + '.lock'
+            
+            cache_zarr_path = dataset_path + postfix + '.zarr.zip'
+            cache_lock_path = cache_zarr_path + postfix + '.lock'
             print('Acquiring lock on cache.')
             with FileLock(cache_lock_path):
                 if not os.path.exists(cache_zarr_path):
@@ -65,7 +82,9 @@ class RobomimicReplayImageDataset(BaseImageDataset):
                             shape_meta=shape_meta, 
                             dataset_path=dataset_path, 
                             abs_action=abs_action, 
-                            rotation_transformer=rotation_transformer)
+                            rotation_transformer=rotation_transformer,
+                            compressor=compressor
+                            )
                         print('Saving cache to disk.')
                         with zarr.ZipStore(cache_zarr_path) as zip_store:
                             replay_buffer.save_to_store(
@@ -75,7 +94,7 @@ class RobomimicReplayImageDataset(BaseImageDataset):
                         shutil.rmtree(cache_zarr_path)
                         raise e
                 else:
-                    print('Loading cached ReplayBuffer from Disk.')
+                    print(f'Loading cached ReplayBuffer from Disk. {cache_zarr_path}')
                     with zarr.ZipStore(cache_zarr_path, mode='r') as zip_store:
                         replay_buffer = ReplayBuffer.copy_from_store(
                             src_store=zip_store, store=zarr.MemoryStore())
@@ -86,7 +105,8 @@ class RobomimicReplayImageDataset(BaseImageDataset):
                 shape_meta=shape_meta, 
                 dataset_path=dataset_path, 
                 abs_action=abs_action, 
-                rotation_transformer=rotation_transformer)
+                rotation_transformer=rotation_transformer,
+                compressor=compressor)
 
         rgb_keys = list()
         lowdim_keys = list()
@@ -243,7 +263,7 @@ def _convert_actions(raw_actions, abs_action, rotation_transformer):
     return actions
 
 
-def _convert_robomimic_to_replay(store, shape_meta, dataset_path, abs_action, rotation_transformer, 
+def _convert_robomimic_to_replay(store, shape_meta, dataset_path, abs_action, rotation_transformer, compressor,
         n_workers=None, max_inflight_tasks=None):
     if n_workers is None:
         n_workers = multiprocessing.cpu_count()
@@ -328,12 +348,12 @@ def _convert_robomimic_to_replay(store, shape_meta, dataset_path, abs_action, ro
                     data_key = 'obs/' + key
                     shape = tuple(shape_meta['obs'][key]['shape'])
                     c,h,w = shape
-                    this_compressor = Jpeg2k(level=50)
+                    # this_compressor = Zlib() # Blosc() # Jpeg2k(level=50)
                     img_arr = data_group.require_dataset(
                         name=key,
                         shape=(n_steps,h,w,c),
                         chunks=(1,h,w,c),
-                        compressor=this_compressor,
+                        compressor=compressor,
                         dtype=np.uint8
                     )
                     for episode_idx in range(len(demos)):

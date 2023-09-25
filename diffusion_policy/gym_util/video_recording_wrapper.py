@@ -32,8 +32,11 @@ class VideoRecordingWrapper(gym.Wrapper):
         return obs
     
     def step(self, action):
+        # import time
+        # t0 = time.perf_counter()
         result = super().step(action)
         self.step_count += 1
+        # t1 = time.perf_counter()
         if self.file_path is not None \
             and ((self.step_count % self.steps_per_render) == 0):
             if not self.video_recoder.is_ready():
@@ -43,6 +46,8 @@ class VideoRecordingWrapper(gym.Wrapper):
                 mode=self.mode, **self.render_kwargs)
             assert frame.dtype == np.uint8
             self.video_recoder.write_frame(frame)
+        # t2 = time.perf_counter()
+        # print(f'VideoEnc: {t1 - t0:.4f} {t2 - t1:.4f}')
         return result
     
     def render(self, mode='rgb_array', **kwargs):

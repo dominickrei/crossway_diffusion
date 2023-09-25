@@ -83,11 +83,11 @@ class AsyncVectorEnv(VectorEnv):
         dummy_env_fn=None,
         observation_space=None,
         action_space=None,
-        shared_memory=True,
-        copy=True,
+        shared_memory=True, # default True
+        copy=True,  # default True
         context=None,
-        daemon=True,
-        worker=None,
+        daemon=True, # default True
+        worker=None
     ):
         ctx = mp.get_context(context)
         self.env_fns = env_fns
