@@ -1,6 +1,6 @@
-# Crossway Diffusion
+# Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning
 
-This is the official implementation of the paper [Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning](https://arxiv.org/abs/2307.01849). 
+This is the official implementation of our paper [Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning](https://arxiv.org/abs/2307.01849). 
 
 The code is adapted from [Diffusion Policy](https://github.com/real-stanford/diffusion_policy).
 
@@ -34,15 +34,15 @@ The Python environment used in this project is identical to [Diffusion Policy](h
 
 (Optional) To manually control the image rendering device  through the environment variable `EGL_DEVICE_ID`, replace the original `robomimic/envs/env_robosuite.py` in `robomimic` with [this modified file](patch/env_robosuite.py).
 
-## Download Training Data
+## Download Datasets
 Please follow the guide at [this link](https://github.com/columbia-ai-robotics/diffusion_policy/blob/main/README.md) to download the simulated datasets.
 
 Our real-world datasets are available at this [Google Drive Link](https://drive.google.com/drive/folders/1VWzLZ38fuOVJpbp3gnQSb0ucAEl7ALt1?usp=sharing).
 The dataset files have a similar structure as [robomimic](https://robomimic.github.io/docs/datasets/overview.html).
 Please check [dataset_readme.md](dataset_readme.md) to train on our and your own datasets.
 
-## Start Training
-To train the model on simulated datasets with a specific random seed:
+## Training
+To train a model on simulated datasets with a specific random seed:
 
 `EGL_DEVICE_ID=0 python train.py --config-dir=config/${task}/ --config-name=type[a-c].yaml training.seed=4[2-4]`
 
@@ -51,7 +51,7 @@ where `${EGL_DEVICE_ID}` defines which GPU is used for rendering simulated image
 The result will be stored at `outputs/` and `wandb/`. In our experiments, we use 42, 43 and 44 as the random seeds.
 
 ## Evaluation
-To evaluation a checkpoint:
+To evaluate a checkpoint:
 
 `EGL_DEVICE_ID=0 python eval.py --checkpoint <path to checkpoint.ckpt> --output_dir <path for output> --device cuda:0`
 
