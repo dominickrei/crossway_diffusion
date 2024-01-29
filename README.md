@@ -1,11 +1,12 @@
 # Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning
 
-This is the official implementation of our paper [Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning](https://arxiv.org/abs/2307.01849). 
+This is the official implementation of our [ICRA'24](https://2024.ieee-icra.org/) paper [Crossway Diffusion: Improving Diffusion-based Visuomotor Policy via Self-supervised Learning](https://arxiv.org/abs/2307.01849). 
 
 The code is adapted from [Diffusion Policy](https://github.com/real-stanford/diffusion_policy).
 
 ## News
-- 1/12/2024, [A new version of our paper](https://arxiv.org/pdf/2307.01849v3.pdf) has been released.
+- 1/29/2024, [our paper](https://arxiv.org/abs/2307.01849) and the [attached video](https://youtu.be/9deKHueZBuk) have been aceepted to [ICRA'24](https://2024.ieee-icra.org/) 🎉.
+- 1/12/2024, [a new version of our paper](https://arxiv.org/pdf/2307.01849v3.pdf) has been released.
 
 ## Presentation and Demo
 Click the GIF below to watch the [full video](https://youtu.be/9deKHueZBuk)!
