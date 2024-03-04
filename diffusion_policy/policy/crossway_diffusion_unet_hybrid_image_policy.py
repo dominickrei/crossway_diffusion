@@ -19,6 +19,8 @@ import diffusion_policy.model.vision.crop_randomizer as dmvc
 from diffusion_policy.common.pytorch_util import dict_apply, replace_submodules
 import torchvision.transforms as T
 
+from diffusion_policy.model.vision.feature_nets import ViT_Tiny
+
 
 class AEDiffusionUnetHybridImagePolicy(BaseImagePolicy):
     def __init__(self, 
@@ -107,6 +109,16 @@ class AEDiffusionUnetHybridImagePolicy(BaseImagePolicy):
             )
 
         obs_encoder = policy.nets['policy'].nets['encoder'].nets['obs']
+
+        for obs_net in obs_encoder.obs_nets:
+            if __builtins__['type'](obs_encoder.obs_nets[obs_net]) == rmbn.VisualCore:
+                print('Found visual backbone... Replacing with ViT')
+                input_shape = obs_encoder.obs_nets[obs_net].input_shape # (C x H x W)
+
+                # Not used for now, can be used later to project dimensions to different sizes
+                # output_shape = obs_encoder.obs_nets[obs_net].output_shape(input_shape)
+
+                obs_encoder.obs_nets[obs_net] = ViT_Tiny(img_size=input_shape[1])
         
         if obs_encoder_group_norm:
             # replace batch norm with group norm
